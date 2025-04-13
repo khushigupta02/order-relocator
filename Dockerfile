@@ -1,14 +1,12 @@
-# Use a base image with OpenJDK
-FROM openjdk:17-jdk-slim
-
-# Set the working directory inside the container
+# ---- Build stage ----
+FROM maven:3.9.0-eclipse-temurin-17 AS build
 WORKDIR /app
+COPY . .
+RUN mvn clean package -DskipTests
 
-# Copy the Spring Boot JAR file from the target directory to the container's working directory
-COPY target/order-locator-0.0.1-SNAPSHOT.jar /app/order-locator-0.0.1-SNAPSHOT.jar
-
-# Expose the port your application will run on
+# ---- Run stage ----
+FROM eclipse-temurin:17-jdk
+WORKDIR /app
+COPY --from=build /app/target/order-locator-0.0.1-SNAPSHOT.jar /app/order-locator-0.0.1-SNAPSHOT.jar
 EXPOSE 8080
-
-# Command to run the application
-CMD ["java", "-jar", "/app/order-locator-0.0.1-SNAPSHOT.jar"]
+ENTRYPOINT ["java", "-jar", "/app/order-locator-0.0.1-SNAPSHOT.jar"]
